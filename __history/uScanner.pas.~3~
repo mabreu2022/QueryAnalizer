@@ -1,0 +1,108 @@
+unit uScanner;
+
+interface
+
+uses
+  System.Classes, System.SysUtils, System.IOUtils, System.RegularExpressions, System.Generics.Collections,
+  uSQLItem, uProjetoItem;
+
+type
+  TClasseScanner = class
+  public
+    function ExecutarScan(const CaminhoRaiz: string): TObjectList<TProjetoItem>;
+  end;
+
+implementation
+
+function ExtrairProjeto(const CaminhoArquivo, CaminhoRaiz: string): string;
+begin
+  Result := TDirectory.GetParent(CaminhoArquivo).Replace(CaminhoRaiz + '\', '');
+end;
+
+function ExtrairUnitDoArquivo(const Conteudo: string): string;
+var
+  Match: TMatch;
+begin
+  Match := TRegEx.Match(Conteudo, 'unit\s+(\w+)\s*;');
+  if Match.Success then
+    Result := Match.Groups[1].Value
+  else
+    Result := '';
+end;
+
+function ExtrairSQLs(const Conteudo: string): TList<TSQLItem>;
+var
+  Linhas: TArray<string>;
+  i: Integer;
+  RegEx: TRegEx;
+  Match: TMatch;
+  Item: TSQLItem;
+begin
+  Result := TList<TSQLItem>.Create;
+  RegEx := TRegEx.Create('(?i)(FDQuery\d*)\.SQL\.(Text|Add)\s*:=\s*(["''])(.*?)\3', [roMultiLine]);
+  Linhas := Conteudo.Split([sLineBreak]);
+
+  for i := 0 to High(Linhas) do
+  begin
+    Match := RegEx.Match(Linhas[i]);
+    if Match.Success then
+    begin
+      Item := TSQLItem.Create;
+      Item.Componente := Match.Groups[1].Value;
+      Item.SQL := Match.Groups[4].Value;
+      Item.Linha := i + 1;
+      Result.Add(Item);
+    end;
+  end;
+end;
+
+function TClasseScanner.ExecutarScan(const CaminhoRaiz: string): TObjectList<TProjetoItem>;
+var
+  Arquivos: TArray<string>;
+  Conteudo, Projeto, UnitName: string;
+  Arquivo: string;
+  SQLs: TList<TSQLItem>;
+  ProjetosDict: TDictionary<string, TProjetoItem>;
+  Item: TSQLItem;
+begin
+  Result := TObjectList<TProjetoItem>.Create(True);
+  ProjetosDict := TDictionary<string, TProjetoItem>.Create;
+
+  Arquivos := TDirectory.GetFiles(CaminhoRaiz, '*.pas', TSearchOption.soAllDirectories);
+
+  for Arquivo in Arquivos do
+  begin
+    try
+      Conteudo := TFile.ReadAllText(Arquivo);
+      SQLs := ExtrairSQLs(Conteudo);
+      UnitName := ExtrairUnitDoArquivo(Conteudo);
+      Projeto := ExtrairProjeto(Arquivo, CaminhoRaiz);
+
+      for Item in SQLs do
+      begin
+        Item.Arquivo := TPath.GetRelativePath(CaminhoRaiz, Arquivo);
+        Item.UnitName := UnitName;
+        Item.Projeto := Projeto;
+
+        if not ProjetosDict.ContainsKey(Projeto) then
+        begin
+          ProjetosDict.Add(Projeto, TProjetoItem.Create);
+          ProjetosDict[Projeto].NomeProjeto := Projeto;
+          ProjetosDict[Projeto].SQLs := TObjectList<TSQLItem>.Create(True);
+        end;
+
+        ProjetosDict[Projeto].SQLs.Add(Item);
+      end;
+    except
+      on E: Exception do
+        Writeln('Erro ao processar ', Arquivo, ': ', E.Message);
+    end;
+  end;
+
+  for Projeto in ProjetosDict.Keys do
+    Result.Add(ProjetosDict[Projeto]);
+
+  ProjetosDict.Free;
+end;
+
+end.

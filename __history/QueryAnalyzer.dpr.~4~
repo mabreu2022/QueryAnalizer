@@ -1,0 +1,62 @@
+program QueryAnalyzer;
+
+{$APPTYPE CONSOLE}
+
+uses
+  System.SysUtils,
+  Classes.uScanner in 'Classes\uScanner.pas',
+  Classes.uAnalyzer in 'Classes\uAnalyzer.pas',
+  Classes.uRelatorioJSON in 'Classes\uRelatorioJSON.pas',
+  Classes.uRelatorioHTML in 'Classes\uRelatorioHTML.pas',
+  Classes.uProjetoItem in 'Classes\uProjetoItem.pas',
+  Classes.uSQLItem in 'Classes\uSQLItem.pas',
+  uScanner in 'uScanner.pas',
+  uAnalyzer in 'uAnalyzer.pas';
+
+procedure CriarPastaRelatorios;
+begin
+  if not DirectoryExists('Relatorios') then
+    CreateDir('Relatorios');
+end;
+
+var
+  Caminho: string;
+  Scanner: TClasseScanner;
+  Analyzer: TClasseAnalyzer;
+  RelatorioJSON: TClasseRelatorioJSON;
+  RelatorioHTML: TClasseRelatorioHTML;
+  Projetos: TObjectList<TProjetoItem>;
+begin
+  try
+    if ParamCount = 0 then
+    begin
+      Writeln('Uso: QueryAnalyzer.exe <caminho_dos_projetos>');
+      Exit;
+    end;
+
+    Caminho := ParamStr(1);
+    CriarPastaRelatorios;
+
+    Scanner := TClasseScanner.Create;
+    Analyzer := TClasseAnalyzer.Create;
+    RelatorioJSON := TClasseRelatorioJSON.Create;
+    RelatorioHTML := TClasseRelatorioHTML.Create;
+
+    Projetos := Scanner.ExecutarScan(Caminho);
+    Analyzer.AnalisarProjetos(Projetos);
+    RelatorioJSON.Gerar(Projetos);
+    RelatorioHTML.Gerar(Projetos);
+
+    Writeln('? Relatórios gerados com sucesso na pasta "Relatorios".');
+
+    // Libera memória
+    Projetos.Free;
+    Scanner.Free;
+    Analyzer.Free;
+    RelatorioJSON.Free;
+    RelatorioHTML.Free;
+  except
+    on E: Exception do
+      Writeln('Erro: ', E.Message);
+  end;
+end.

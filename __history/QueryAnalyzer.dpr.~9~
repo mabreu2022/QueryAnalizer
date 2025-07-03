@@ -1,0 +1,105 @@
+program QueryAnalyzer;
+
+{$APPTYPE CONSOLE}
+
+uses
+  System.SysUtils,
+  System.IOUtils,
+  System.Generics.Collections,
+  uScanner in 'uScanner.pas',
+  uScannerDFM in 'uScannerDFM.pas',
+  uAnalyzer in 'uAnalyzer.pas',
+  uRelatorioJSON in 'uRelatorioJSON.pas',
+  uRelatorioHTML in 'uRelatorioHTML.pas',
+  uSQLItem in 'uSQLItem.pas',
+  uProjetoItem in 'uProjetoItem.pas';
+
+procedure CriarPastaRelatorios;
+begin
+  if not DirectoryExists('Relatorios') then
+    CreateDir('Relatorios');
+end;
+
+var
+  Caminho: string;
+  Scanner: TClasseScanner;
+  ScannerDFM: TScannerDFM;
+  Analyzer: TClasseAnalyzer;
+  RelatorioJSON: TClasseRelatorioJSON;
+  RelatorioHTML: TClasseRelatorioHTML;
+  Projetos: TObjectList<TProjetoItem>;
+  SQLsDFM: TList<TSQLItem>;
+  Item: TSQLItem;
+  ProjetoItem: TProjetoItem;
+  ProjetoEncontrado: Boolean;
+begin
+  try
+    if ParamCount = 0 then
+    begin
+      Writeln('?? Uso: QueryAnalyzer.exe <caminho_dos_projetos>');
+      Exit;
+    end;
+
+    Caminho := IncludeTrailingPathDelimiter(ParamStr(1));
+    CriarPastaRelatorios;
+
+    // Instanciando os componentes
+    Scanner := TClasseScanner.Create;
+    ScannerDFM := TScannerDFM.Create;
+    Analyzer := TClasseAnalyzer.Create;
+    RelatorioJSON := TClasseRelatorioJSON.Create;
+    RelatorioHTML := TClasseRelatorioHTML.Create;
+
+    // Escaneia arquivos .pas
+    Projetos := Scanner.ExecutarScan(Caminho);
+
+    // Escaneia arquivos .dfm
+    SQLsDFM := ScannerDFM.EscanearDFMs(Caminho);
+
+    for Item in SQLsDFM do
+    begin
+      Item.Arquivo := ExtractRelativePath(Caminho, Item.Arquivo);
+      Item.Projeto := Copy(Item.Arquivo, 1, Pos('\', Item.Arquivo) - 1);
+      ProjetoEncontrado := False;
+
+      for ProjetoItem in Projetos do
+        if ProjetoItem.NomeProjeto = Item.Projeto then
+        begin
+          ProjetoItem.SQLs.Add(Item);
+          ProjetoEncontrado := True;
+          Break;
+        end;
+
+      if not ProjetoEncontrado then
+      begin
+        ProjetoItem := TProjetoItem.Create;
+        ProjetoItem.NomeProjeto := Item.Projeto;
+        ProjetoItem.SQLs := TObjectList<TSQLItem>.Create(True);
+        ProjetoItem.SQLs.Add(Item);
+        Projetos.Add(ProjetoItem);
+      end;
+    end;
+
+    SQLsDFM.Free;
+    ScannerDFM.Free;
+
+    // Valida consultas e aplica sugestões
+    Analyzer.AnalisarProjetos(Projetos);
+
+    // Geração dos relatórios
+    RelatorioJSON.Gerar(Projetos);
+    RelatorioHTML.Gerar(Projetos);
+
+    Writeln('? Relatórios gerados com sucesso na pasta "Relatorios".');
+
+    // Libera recursos
+    Projetos.Free;
+    Scanner.Free;
+    Analyzer.Free;
+    RelatorioJSON.Free;
+    RelatorioHTML.Free;
+  except
+    on E: Exception do
+      Writeln('? Erro: ', E.Message);
+  end;
+end.

@@ -1,0 +1,63 @@
+<html><head><title>Relatório de SQLs</title>
+<style>body{font-family:Arial;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #ccc;padding:8px;}th{background:#eee;}tr:hover{background:#eef;}</style>
+</head><body>
+<h1>Relatório de SQLs Encontrados</h1>
+<h2>Projeto: c:\Fontes\Nova pasta\geradorlicitacao</h2>
+<table>
+<tr><th>Arquivo</th><th>Unit</th><th>Linha</th><th>Componente</th><th>SQL</th><th>Problema</th><th>Sugestão</th></tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>182</td>
+<td>FDQuery3</td>
+<td>UPDATE produtos SET ativo = </td>
+<td>UPDATE sem cláusula WHERE</td>
+<td>Use cláusula WHERE para evitar modificação em massa indesejada.</td>
+</tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>255</td>
+<td>FDQuery3</td>
+<td>UPDATE produtos SET ativo = </td>
+<td>UPDATE sem cláusula WHERE</td>
+<td>Use cláusula WHERE para evitar modificação em massa indesejada.</td>
+</tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>544</td>
+<td>FDQuery1</td>
+<td>SELECT * FROM produtos WHERE produto LIKE :searchTerm</td>
+<td>Uso de SELECT *</td>
+<td>Evite SELECT *. Prefira especificar as colunas necessárias, como: SELECT ID, Nome</td>
+</tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>550</td>
+<td>FDQuery1</td>
+<td>SELECT * FROM produtos order by idprodutos</td>
+<td>Uso de SELECT *</td>
+<td>Evite SELECT *. Prefira especificar as colunas necessárias, como: SELECT ID, Nome</td>
+</tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>568</td>
+<td>FDQuery1</td>
+<td>SELECT * FROM produtos WHERE partnumber LIKE :searchTerm</td>
+<td>Uso de SELECT *</td>
+<td>Evite SELECT *. Prefira especificar as colunas necessárias, como: SELECT ID, Nome</td>
+</tr>
+<tr>
+<td>Nova pasta\geradorlicitacao\UPrincipal.pas</td>
+<td>UPrincipal</td>
+<td>574</td>
+<td>FDQuery1</td>
+<td>SELECT * FROM produtos order by idprodutos</td>
+<td>Uso de SELECT *</td>
+<td>Evite SELECT *. Prefira especificar as colunas necessárias, como: SELECT ID, Nome</td>
+</tr>
+</table>
+</body></html>

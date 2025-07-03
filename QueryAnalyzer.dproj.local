@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2025/07/03 11:14:18.873,C:\FONTES\QueryAnaliser\QueryAnalyzer.dproj=C:\Users\Mauricio Abreu\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2025/07/03 11:15:01.077,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:16:31.889,C:\FONTES\QueryAnaliser\uScanner.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:17:33.022,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:17:46.872,C:\FONTES\QueryAnaliser\uAnalyzer.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:18:19.735,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:18:39.033,C:\FONTES\QueryAnaliser\uRelatorioJSON.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:19:00.246,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:19:09.940,C:\FONTES\QueryAnaliser\uRelatorioHTML.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:19:50.769,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:20:02.577,C:\FONTES\QueryAnaliser\uSQLItem.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:20:16.543,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:20:30.939,C:\FONTES\QueryAnaliser\uProjetoItem.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:33:42.037,=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+    <Transaction>2025/07/03 11:34:04.755,C:\FONTES\QueryAnaliser\uScannerDFM.pas=C:\FONTES\QueryAnaliser\Unit1.pas</Transaction>
+  </Transactions>
+</BorlandProject>
