@@ -1,4 +1,4 @@
-program QueryAnalyzer;
+                                                                              program QueryAnalyzer;
 
 {$APPTYPE CONSOLE}
 
@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   System.IOUtils,
   System.Generics.Collections,
+  System.Generics.Defaults,
   uScanner in 'uScanner.pas',
   uScannerDFM in 'uScannerDFM.pas',
   uAnalyzer in 'uAnalyzer.pas',
@@ -38,6 +39,8 @@ var
   Item: TSQLItem;
   ProjetoItem: TProjetoItem;
   ProjetoEncontrado: Boolean;
+  ContadorSQLs, ContadorProblemas: Integer;
+  Ranking: TList<TPair<string, Integer>>;
 begin
   try
     Writeln('?? Iniciando análise de SQLs...');
@@ -52,20 +55,20 @@ begin
 
     CriarPastaRelatorios;
 
-    // Instanciando as classes
     Writeln('?? Preparando motores de análise...');
     Scanner := TClasseScanner.Create;
     ScannerDFM := TScannerDFM.Create;
     Analyzer := TClasseAnalyzer.Create;
     RelatorioJSON := TClasseRelatorioJSON.Create;
     RelatorioHTML := TClasseRelatorioHTML.Create;
+    ContadorSQLs := 0;
 
-    // Escanear arquivos .pas
     Writeln('?? Escaneando arquivos .pas...');
     Projetos := Scanner.ExecutarScan(Caminho);
-    Writeln('? Arquivos .pas escaneados: ', Projetos.Count, ' projetos encontrados.');
+    for ProjetoItem in Projetos do
+      ContadorSQLs := ContadorSQLs + ProjetoItem.SQLs.Count;
+    Writeln('? Arquivos .pas escaneados: ', Projetos.Count, ' projeto(s).');
 
-    // Escanear arquivos .dfm
     Writeln('?? Escaneando arquivos .dfm...');
     SQLsDFM := ScannerDFM.EscanearDFMs(Caminho);
     Writeln('? Consultas encontradas em .dfm: ', SQLsDFM.Count);
@@ -92,31 +95,67 @@ begin
         ProjetoItem.SQLs.Add(Item);
         Projetos.Add(ProjetoItem);
       end;
+
+      Inc(ContadorSQLs);
     end;
 
     SQLsDFM.Free;
     ScannerDFM.Free;
 
-    // Validação de SQLs
-    Writeln('?? Validando consultas e aplicando sugestões...');
+    Writeln('?? Validando consultas...');
     Analyzer.AnalisarProjetos(Projetos);
     Writeln('? Validação concluída.');
 
-    // Geração dos relatórios
-    Writeln('?? Gerando arquivos de relatório...');
     RelatorioJSON.Gerar(Projetos);
     RelatorioHTML.Gerar(Projetos);
-    Writeln('? Relatórios gerados com sucesso na pasta "Relatorios".');
 
-    // Liberação de memória
-    Writeln('?? Limpando recursos da memória...');
+    Writeln('?? Relatórios salvos na pasta "Relatorios".');
+
+    // Resumo estatístico
+    Ranking := TList<TPair<string, Integer>>.Create;
+    ContadorProblemas := 0;
+
+    for ProjetoItem in Projetos do
+    begin
+      var ProblemasNoProjeto := 0;
+      for Item in ProjetoItem.SQLs do
+        if not Item.Problema.IsEmpty then
+          Inc(ProblemasNoProjeto);
+
+      ContadorProblemas := ContadorProblemas + ProblemasNoProjeto;
+      Ranking.Add(TPair<string, Integer>.Create(ProjetoItem.NomeProjeto, ProblemasNoProjeto));
+    end;
+
+    Ranking.Sort(
+      TComparer<TPair<string, Integer>>.Construct(
+        function(const A, B: TPair<string, Integer>): Integer
+        begin
+          Result := B.Value - A.Value;
+        end
+      )
+    );
+
+    Writeln('');
+    Writeln('?? Total de consultas SQL processadas: ', ContadorSQLs);
+    Writeln('?? Total com problemas detectados: ', ContadorProblemas);
+    Writeln('');
+    Writeln('?? Projetos com mais alertas:');
+    for var Pair in Ranking do
+      if Pair.Value > 0 then
+        Writeln('  • ', Pair.Key, ': ', Pair.Value, ' alerta(s)');
+
+    Ranking.Free;
+
+    // Cleanup
+    Writeln('');
+    Writeln('?? Finalizando e liberando memória...');
     Projetos.Free;
     Scanner.Free;
     Analyzer.Free;
     RelatorioJSON.Free;
     RelatorioHTML.Free;
 
-    Writeln('?? Processo finalizado com sucesso.');
+    Writeln('?? Processo concluído com sucesso.');
   except
     on E: Exception do
       Writeln('? Erro: ', E.Message);
