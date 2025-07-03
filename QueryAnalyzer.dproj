@@ -175,6 +175,7 @@
         <DCCReference Include="uAnalyzer.pas"/>
         <DCCReference Include="uRelatorioJSON.pas"/>
         <DCCReference Include="uRelatorioHTML.pas"/>
+        <DCCReference Include="uRelatorioCSV.pas"/>
         <DCCReference Include="uSQLItem.pas"/>
         <DCCReference Include="uProjetoItem.pas"/>
         <BuildConfiguration Include="Base">

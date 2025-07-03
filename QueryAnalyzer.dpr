@@ -1,4 +1,4 @@
-                                                                              program QueryAnalyzer;
+program QueryAnalyzer;
 
 {$APPTYPE CONSOLE}
 
@@ -12,6 +12,7 @@ uses
   uAnalyzer in 'uAnalyzer.pas',
   uRelatorioJSON in 'uRelatorioJSON.pas',
   uRelatorioHTML in 'uRelatorioHTML.pas',
+  uRelatorioCSV in 'uRelatorioCSV.pas',
   uSQLItem in 'uSQLItem.pas',
   uProjetoItem in 'uProjetoItem.pas';
 
@@ -34,6 +35,7 @@ var
   Analyzer: TClasseAnalyzer;
   RelatorioJSON: TClasseRelatorioJSON;
   RelatorioHTML: TClasseRelatorioHTML;
+  RelatorioCSV: TClasseRelatorioCSV;
   Projetos: TObjectList<TProjetoItem>;
   SQLsDFM: TList<TSQLItem>;
   Item: TSQLItem;
@@ -61,13 +63,15 @@ begin
     Analyzer := TClasseAnalyzer.Create;
     RelatorioJSON := TClasseRelatorioJSON.Create;
     RelatorioHTML := TClasseRelatorioHTML.Create;
+    RelatorioCSV := TClasseRelatorioCSV.Create;
+
     ContadorSQLs := 0;
 
     Writeln('?? Escaneando arquivos .pas...');
     Projetos := Scanner.ExecutarScan(Caminho);
     for ProjetoItem in Projetos do
       ContadorSQLs := ContadorSQLs + ProjetoItem.SQLs.Count;
-    Writeln('? Arquivos .pas escaneados: ', Projetos.Count, ' projeto(s).');
+    Writeln('? Arquivos .pas escaneados: ', Projetos.Count);
 
     Writeln('?? Escaneando arquivos .dfm...');
     SQLsDFM := ScannerDFM.EscanearDFMs(Caminho);
@@ -106,24 +110,24 @@ begin
     Analyzer.AnalisarProjetos(Projetos);
     Writeln('? Validação concluída.');
 
+    Writeln('?? Gerando relatórios...');
     RelatorioJSON.Gerar(Projetos);
     RelatorioHTML.Gerar(Projetos);
+    RelatorioCSV.Gerar(Projetos);
+    Writeln('? Arquivos gerados: JSON, HTML e CSV com data da análise.');
 
-    Writeln('?? Relatórios salvos na pasta "Relatorios".');
-
-    // Resumo estatístico
     Ranking := TList<TPair<string, Integer>>.Create;
     ContadorProblemas := 0;
 
     for ProjetoItem in Projetos do
     begin
-      var ProblemasNoProjeto := 0;
+      var Problemas := 0;
       for Item in ProjetoItem.SQLs do
         if not Item.Problema.IsEmpty then
-          Inc(ProblemasNoProjeto);
+          Inc(Problemas);
 
-      ContadorProblemas := ContadorProblemas + ProblemasNoProjeto;
-      Ranking.Add(TPair<string, Integer>.Create(ProjetoItem.NomeProjeto, ProblemasNoProjeto));
+      ContadorProblemas := ContadorProblemas + Problemas;
+      Ranking.Add(TPair<string, Integer>.Create(ProjetoItem.NomeProjeto, Problemas));
     end;
 
     Ranking.Sort(
@@ -146,7 +150,6 @@ begin
 
     Ranking.Free;
 
-    // Cleanup
     Writeln('');
     Writeln('?? Finalizando e liberando memória...');
     Projetos.Free;
@@ -154,6 +157,7 @@ begin
     Analyzer.Free;
     RelatorioJSON.Free;
     RelatorioHTML.Free;
+    RelatorioCSV.Free;
 
     Writeln('?? Processo concluído com sucesso.');
   except
